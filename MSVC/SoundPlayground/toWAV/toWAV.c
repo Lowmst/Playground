@@ -38,6 +38,32 @@ int64_t Quantization(double sample, int bitDepth) {
 	return (int64_t)((sample > 0) ? ((pow(2, bitDepth - 1) - 1) * sample) : (pow(2, bitDepth - 1) * sample));
 }
 
+void WriteWAV(int64_t wave, int waveSize, uint16_t numChannel,uint32_t samplingRate, uint16_t bitDepth) {
+	uint32_t byteRate = numChannel * samplingRate * bitDepth / 8;
+	uint16_t blockAlign = numChannel * bitDepth / 8;
+	uint32_t dataSize = waveSize * bitDepth / 8;
+	uint32_t Size = 4 + 4 + 16 + 4 + dataSize;
+	struct HEADER header = {
+		"RIFF",
+		Size,
+		"WAVE",
+		"fmt ",
+		16,
+		1,
+		1,
+		samplingRate,
+		byteRate,
+		blockAlign,
+		bitDepth,
+		"data",
+		dataSize
+	};
+	int numBaseByte = ceil((double)bitDepth / 8);
+
+
+}
+
+
 int main(void) {
 	int channel = 1;
 	int time = 5;
