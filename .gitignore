@@ -361,3 +361,5 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/MSVC/SoundPlayground/toWAV/out16.wav
+/MSVC/SoundPlayground/toWAV/out24.wav

@@ -28,34 +28,51 @@ struct HEADER
 	//"data" Data is the kind chosen in "encodeMode"
 };
 
+double TriangleWave(int sampleIndex, double period) {
+	return sin(2 * M_PI * sampleIndex / period);
+}
+double SquareWave(int sampleIndex, double period, double dutyRatio) {
+	return 1 - 2 * ceil((double)sampleIndex / period - floor((double)sampleIndex / period) - dutyRatio);
+}
+int64_t Quantization(double sample, int bitDepth) {
+	return (int64_t)((sample > 0) ? ((pow(2, bitDepth - 1) - 1) * sample) : (pow(2, bitDepth - 1) * sample));
+}
+
 int main(void) {
 	int channel = 1;
 	int time = 5;
 	int sample = 44100;
-	int bit = 16;
-	int pitch = 2000;
+	int bit = 24;
+	int pitch = 440;
 	double duty = 0.5;
 	double T = (double)sample / (double)pitch;
 
-	double* wave_o = (double*)malloc(time * sample * sizeof(double));
-	int16_t* wave_s = (int16_t*)malloc(time * sample * sizeof(int16_t));
+	int64_t* wave_o = (int64_t*)malloc(time * sample * sizeof(int64_t));
+	//int16_t* wave_s = (int16_t*)malloc(time * sample * sizeof(int16_t));
 	if (wave_o) {
 		for (int i = 0; i < (time * sample); i++) {
-			wave_o[i] = 1 - 2 * ceil((double)i / T - floor((double)i / T) - duty); //Square wave by lowmst
+			//wave_o[i] = 1 - 2 * ceil((double)i / T - floor((double)i / T) - duty); //Square wave by lowmst
 			//wave_o[i] = sin(2 * M_PI * i / T);
+			wave_o[i] = Quantization(SquareWave(i,T,duty), bit);
+			//printf("%d\n", (int)SquareWave(i, T, duty));
 		}
 	}
-	if (wave_s && wave_o) {
-		for (int i = 0; i < (time * sample); i++) {
-			if (wave_o[i] > 0) {
-				wave_s[i] = (int16_t)((pow(2, 15) - 1) * (wave_o[i]));
-			}
-			else
-			{
-				wave_s[i] = (int16_t)(pow(2, 15) * (wave_o[i]));
-			}
-		}
+
+	for (int i = 0; i < (time * sample); i++) {
+		printf("%d\n", wave_o[i]);
 	}
+
+//	if (wave_s && wave_o) {
+//		for (int i = 0; i < (time * sample); i++) {
+//			if (wave_o[i] > 0) {
+//				wave_s[i] = (int16_t)((pow(2, 15) - 1) * (wave_o[i]));
+//			}
+//			else
+//			{
+//				wave_s[i] = (int16_t)(pow(2, 15) * (wave_o[i]));
+//			}
+//		}
+//	}
 
 	uint32_t byteRate = channel * sample * bit / 8;
 	uint16_t blockAlign = channel * bit / 8;
@@ -76,10 +93,10 @@ int main(void) {
 		"data",
 		dataSize
 	};
-	FILE* wav = fopen("out.wav", "wb");
+	FILE* wav = fopen("out24.wav", "wb");
 	fwrite(&header, sizeof header, 1, wav);
-	if (wave_s) {
-		fwrite(wave_s, bit / 8, time * sample, wav);
+	if (wave_o) {
+		fwrite(wave_o, 3, time * sample, wav);
 	}
 	fclose(wav);
 	return 0;
