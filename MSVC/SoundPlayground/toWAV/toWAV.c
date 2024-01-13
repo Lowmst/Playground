@@ -69,7 +69,7 @@ int main(void) {
 			wave[i] = Quantization(SquareWave(i,T,duty), bit);
 		}
 	}
-	WriteMonoWAV(wave, time * sample, sample, bit, "squ8.wav");
+	WriteMonoWAV(wave, time * sample, sample, bit, "squ16.wav");
 
 	return 0;
 }
