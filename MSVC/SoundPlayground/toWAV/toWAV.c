@@ -17,6 +17,7 @@ int64_t Quantization(double sample, int bitDepth) {
 }
 
 void WriteMonoWAV(int64_t* wave, int waveSize, uint32_t samplingRate, uint16_t bitDepth, char* fileName) {
+	/* wave为PCM字节数组，waveSize为采样数，sanplingRate为采样率 */
 	int numBaseByte = (int)ceil((double)bitDepth / 8);
 	uint16_t numChannel = 1;
 	uint32_t byteRate = numChannel * samplingRate * bitDepth / 8;
@@ -38,13 +39,13 @@ void WriteMonoWAV(int64_t* wave, int waveSize, uint32_t samplingRate, uint16_t b
 		.dataID = "data",
 		.dataSize = dataSize
 	};
-	//��8λ������ʹ���޷�����
+	//对8位及以下使用无符号数
 	if (bitDepth <= 8) {
 		for (int i = 0; i < waveSize; i++) {
 			wave[i] += (int64_t)pow(2, bitDepth - 1);
 		}
 	}
-	//��8������bit�����
+	//非8整数倍bit左对齐
 	if (bitDepth % 8) {
 		for (int i = 0; i < waveSize; i++) {
 			wave[i] = wave[i] << (numBaseByte * 8 - bitDepth);
@@ -53,7 +54,7 @@ void WriteMonoWAV(int64_t* wave, int waveSize, uint32_t samplingRate, uint16_t b
 	
 	int8_t* byteWave = (int8_t*)malloc(numBaseByte * waveSize * sizeof(int8_t));
 	if (byteWave) {
-		for (int i = 0; i < waveSize; i++) {
+		for (int i = 0; i < waveSize; i++) { //逐字节按小端方式写入，此处先转换为小端字节序的byteWave数组
 			for (int j = 0; j < numBaseByte; j++) {
 				byteWave[numBaseByte * i + j] = (int8_t)((wave[i] >> (8 * j)) & 0xFF);
 			}
